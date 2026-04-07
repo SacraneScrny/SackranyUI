@@ -10,16 +10,16 @@ using UnityEngine;
 
 namespace SackranyUI.Core.Entities
 {
-    public static class ViewModelFactory
+    internal static class ViewModelFactory
     {
-        public static TViewModel Create<TViewModel>()
+        internal static TViewModel Create<TViewModel>()
             where TViewModel : ViewModel, new()
         {
             var viewModel = new TViewModel();
             return viewModel;
         }
         
-        public static ViewModelData Instantiate(
+        internal static ViewModelData Instantiate(
             ViewModel viewModel,
             IViewModelTemplate template, 
             Transform contentRoot = null)
@@ -44,9 +44,9 @@ namespace SackranyUI.Core.Entities
             };
         }
 
-        public static void Initialize(
+        internal static void Initialize(
             ViewModelData data,
-            IContext context,
+            IContextUser context,
             IUIBusListener listener = null,
             IUIBusPublisher publisher = null,
             CancellationToken token = default

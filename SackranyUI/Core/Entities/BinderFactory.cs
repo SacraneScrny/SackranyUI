@@ -15,7 +15,7 @@ using UnityEngine.UI;
 
 namespace SackranyUI.Core.Entities
 {
-    public static class BinderFactory
+    internal static class BinderFactory
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         static void Init()

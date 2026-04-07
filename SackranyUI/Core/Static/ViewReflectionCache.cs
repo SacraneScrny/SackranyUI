@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace SackranyUI.Core.Static
 {
-    public static class ViewReflectionCache
+    internal static class ViewReflectionCache
     {
         public readonly struct ViewMetadata
         {

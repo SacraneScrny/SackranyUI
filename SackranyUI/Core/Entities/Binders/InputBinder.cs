@@ -4,7 +4,7 @@ using UnityEngine.Events;
 
 namespace SackranyUI.Core.Entities.Binders
 {
-    public sealed class InputBinder<T> : IBinder
+    internal sealed class InputBinder<T> : IBinder
     {
         readonly Action _subscribe;
         readonly Action _unsubscribe;

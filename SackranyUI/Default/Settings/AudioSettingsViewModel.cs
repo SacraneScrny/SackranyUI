@@ -33,19 +33,18 @@ namespace SackranyUI.Default.Settings
         [Bind("saveButton_active")] ReactiveProperty<bool> _saveActive = new ();
         
         GameAudioConfig _gameAudioConfig;
-        CompositeDisposable _localizations;
         
         protected override void OnInitialized()
         {
-            _localizations = CompositeDisposableHelper.Create(
+            Track(
                 Template.MuteName?.Subscribe(t => _muteName.Value = t, "Mute"),
                 Template.MasterVolumeName?.Subscribe(t => _masterVolumeName.Value = t, "Master"),
                 Template.GameVolumeName?.Subscribe(t => _gameVolumeName.Value = t, "Game"),
                 Template.MusicVolumeName?.Subscribe(t => _musicVolumeName.Value = t, "Music"),
                 Template.UIVolumeName?.Subscribe(t => _uiVolumeName.Value = t, "UI"),
-                Template.ApplyName?.Subscribe(t => _saveName.Value = t, "Save")
+                Template.ApplyName?.Subscribe(t => _saveName.Value = t, "Save"),
+                Subscribe<UIEvents.SettingsWindowCall, bool>(OnSettingsWindowCall)
             );
-            Subscribe<UIEvents.SettingsWindowCall, bool>(OnSettingsWindowCall);
             
             LoadConfig();
         }
@@ -106,17 +105,6 @@ namespace SackranyUI.Default.Settings
         {
             Close();
             Publish<UIEvents.SettingsWindowCall, bool>(false);
-        }
-        
-        protected override void OnDispose()
-        {
-            _localizations?.Dispose();
-            _muteName?.Dispose();
-            _masterVolumeName?.Dispose();
-            _gameVolumeName?.Dispose();
-            _musicVolumeName?.Dispose();
-            _uiVolumeName?.Dispose();
-            _saveName?.Dispose();
         }
     }
 

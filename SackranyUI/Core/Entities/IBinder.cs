@@ -1,6 +1,6 @@
 ﻿namespace SackranyUI.Core.Entities
 {
-    public interface IBinder
+    internal interface IBinder
     {
         void Bind();
         void Unbind();

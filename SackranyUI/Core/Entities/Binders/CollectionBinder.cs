@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace SackranyUI.Core.Entities.Binders
 {
-    public sealed class CollectionBinder<TItemVM> : IBinder
+    internal sealed class CollectionBinder<TItemVM> : IBinder
         where TItemVM : ViewModel
     {
         readonly ReactiveList<TItemVM> _list;
@@ -75,6 +75,7 @@ namespace SackranyUI.Core.Entities.Binders
 
             var (_, go, binders) = _instances[idx];
             foreach (var b in binders) b.Unbind();
+            vm.Dispose();
             Object.Destroy(go);
             _instances.RemoveAt(idx);
         }

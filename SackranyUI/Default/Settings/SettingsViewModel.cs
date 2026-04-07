@@ -57,7 +57,7 @@ namespace SackranyUI.Default.Settings
             _controlsButtonActive.Value = Template.Controls;
             _gameButtonActive.Value = Template.Game;
             
-            _disposables = CompositeDisposableHelper.Create(
+            Track(
                 Template.Title?.Subscribe(t => _title.Value = t, "Settings"),
                 Template.CancelName?.Subscribe(t => _cancelName.Value = t, "Cancel"),
                 
@@ -66,16 +66,9 @@ namespace SackranyUI.Default.Settings
                 Template.ControlsName?.Subscribe(t => _controlsButtonLabel.Value = t, "Control"),
                 Template.GameName?.Subscribe(t => _gameButtonLabel.Value = t, "Game"),
                 
-                _title, _cancelName,
-                _audioButtonLabel, _audioButtonActive, _audioButtonInteractable,
-                _graphicsButtonLabel, _graphicsButtonActive, _graphicsButtonInteractable,
-                _controlsButtonLabel, _controlsButtonActive, _controlsButtonInteractable,
-                _gameButtonLabel, _gameButtonActive, _gameButtonInteractable,
-                
-                _audioViewModel, _graphicsViewModel, _controlsViewModel, _gameViewModel
+                _audioViewModel, _graphicsViewModel, _controlsViewModel, _gameViewModel,
+                Subscribe<UIEvents.SettingsWindowCall, bool>(OnSettingsWindowCall)
             );
-            
-            Subscribe<UIEvents.SettingsWindowCall, bool>(OnSettingsWindowCall);
         }
         void OnSettingsWindowCall(bool value)
         {
@@ -167,10 +160,6 @@ namespace SackranyUI.Default.Settings
             if (_controlsViewModel != null) return true;
             if (_gameViewModel != null) return true;
             return false;
-        }
-        protected override void OnDispose()
-        {
-            _disposables?.Dispose();
         }
     }
 

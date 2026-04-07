@@ -5,6 +5,7 @@ using System.Threading;
 
 using SackranyUI.Core.Base;
 using SackranyUI.Core.Events;
+using SackranyUI.Core.Static;
 
 using UnityEngine;
 
@@ -12,15 +13,17 @@ using Object = UnityEngine.Object;
 
 namespace SackranyUI.Core.Entities
 {
+    [Serializable]
     public class UIContext : IContext
     {
-        readonly UIEventBus _eventBus;
-        readonly CancellationToken _cancellationToken;
-        readonly Transform _content;
+        UIEventBus _eventBus;
+        CancellationToken _cancellationToken;
+        Transform _content;
+        
         readonly Dictionary<int, ViewModelData> _viewModels = new ();
         readonly Dictionary<Type, List<ViewModel>> _typesToViewModels = new ();
 
-        public UIContext(Transform contentRoot, CancellationToken cancellationToken)
+        public void Init(Transform contentRoot, CancellationToken cancellationToken)
         {
             _eventBus = new UIEventBus();
             _cancellationToken = cancellationToken;
@@ -44,6 +47,7 @@ namespace SackranyUI.Core.Entities
             viewModel.Opened += (_) => SetActivePrefab(id, true);
             viewModel.Closed += (_) => SetActivePrefab(id, false);
             viewModel.Disposed += (_) => OnViewModelDisposed(id);
+            viewModel.Reiniting += (_) => ReinitingViewModel(id);
             
             ViewModelFactory.Initialize(
                 viewModelData, 
@@ -139,6 +143,11 @@ namespace SackranyUI.Core.Entities
         {
             if (!_viewModels.TryGetValue(id, out var viewModelData)) return;
             viewModelData.Prefab.SetActive(value);
+        }
+        void ReinitingViewModel(int id)
+        {
+            if (!_viewModels.TryGetValue(id, out var viewModelData)) return;
+            UIBinder.BindInits(viewModelData.ViewModel, viewModelData.Views);
         }
     }
 }

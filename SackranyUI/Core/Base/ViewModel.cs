@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+
+using R3;
 
 using SackranyUI.Core.Entities;
 using SackranyUI.Core.Events;
+using SackranyUI.Core.Static;
 
 using UnityEngine;
 
@@ -11,7 +15,7 @@ namespace SackranyUI.Core.Base
 {
     public abstract class ViewModel 
         : IDisposable, IEquatable<ViewModel>,
-            IUIBusListener, IUIBusPublisher, IContext
+            IUIBusListener, IUIBusPublisher, IContextUser
     {
         static int _globalId;
         public readonly int Id = Interlocked.Increment(ref _globalId);
@@ -21,7 +25,7 @@ namespace SackranyUI.Core.Base
         public CancellationTokenSource CancellationTokenSource { get; private set; }
         public bool IsInitialized { get; private set; }
 
-        public IContext Context { get; private set; }
+        public IContextUser Context { get; private set; }
         public IUIBusListener EventListener { get; private set; }
         public IUIBusPublisher EventPublisher { get; private set; }
         
@@ -34,7 +38,7 @@ namespace SackranyUI.Core.Base
         public bool IsOpened { get; private set; }
         
         public void Initialize(
-            IContext context = null,
+            IContextUser context = null,
             IUIBusListener eventListener = null, 
             IUIBusPublisher eventPublisher = null, 
             Transform root = null,
@@ -71,23 +75,42 @@ namespace SackranyUI.Core.Base
         protected virtual void OnClosed() { }
 
         #region DISPOSE
+        readonly CompositeDisposable _disposables = new();
         bool _disposed;
         public void Dispose()
         {
             if (_disposed) return;
             CancellationTokenSource?.Cancel();
             CancellationTokenSource?.Dispose();
+            
+            var meta = ViewModelReflectionCache.GetViewModelMetadata(GetType());
+            foreach (var field in meta.FieldBindings)
+                (field.Field.GetValue(this) as IDisposable)?.Dispose();
+            DisposeTracked();
+            
             OnDispose();
             Disposed?.Invoke(this);
-            
             _disposed = true;
         }
-        protected abstract void OnDispose();
+        protected virtual void OnDispose() { }
+
+        protected void Track(IDisposable disposable) => _disposables.Add(disposable);
+        protected void Track(params IDisposable[] disposables)
+        {
+            foreach (var d in disposables)
+                if (d != null) _disposables.Add(d);
+        }
+        protected void DisposeTracked()
+        {
+            _disposables?.Dispose();
+            _disposables?.Clear();
+        }
         #endregion
 
         public event Action<ViewModel> Disposed;
         public event Action<ViewModel> Opened;
         public event Action<ViewModel> Closed;
+        public event Action<ViewModel> Reiniting; 
         
         public override int GetHashCode() => Id;
         public bool Equals(ViewModel other)
@@ -121,8 +144,8 @@ namespace SackranyUI.Core.Base
             return HasContext && Context.TryGetAll(out result, cond);
         }
         
-        public void Subscribe<E>(Action callback) where E : IUIEvent => EventListener.Subscribe<E>(callback);
-        public void Subscribe<E, T>(Action<T> callback) where E : IUIEvent => EventListener.Subscribe<E, T>(callback);
+        public IDisposable Subscribe<E>(Action callback) where E : IUIEvent => EventListener.Subscribe<E>(callback);
+        public IDisposable Subscribe<E, T>(Action<T> callback) where E : IUIEvent => EventListener.Subscribe<E, T>(callback);
         public void Unsubscribe<E>(Action callback) where E : IUIEvent => EventListener.Unsubscribe<E>(callback);
         public void Unsubscribe<E, T>(Action<T> callback) where E : IUIEvent => EventListener.Unsubscribe<E, T>(callback);
         public bool Publish<E>() where E : IUIEvent 
@@ -131,6 +154,7 @@ namespace SackranyUI.Core.Base
             => EventPublisher.Publish<E, T>(data, includeNoDataChannel);
 
         public Transform GetAnchorOrDefault(string key) => Anchors.GetValueOrDefault(key) ?? Root;
+        protected void Reinit() => Reiniting?.Invoke(this);
     }
 
     public abstract class ViewModel<TTemplate> : ViewModel

@@ -4,7 +4,7 @@ using R3;
 
 namespace SackranyUI.Core.Entities.Binders
 {
-    public sealed class GenericBinder<T> : Observer<T>, IBinder
+    internal sealed class GenericBinder<T> : Observer<T>, IBinder
     {
         readonly ReadOnlyReactiveProperty<T> _property;
         readonly Action<T> _setter;

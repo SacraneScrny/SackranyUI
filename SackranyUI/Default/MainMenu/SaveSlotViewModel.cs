@@ -38,8 +38,8 @@ namespace SackranyUI.Default.MainMenu
         {
             _meta = meta;
 
-            _disposables?.Dispose();
-            _disposables = CompositeDisposableHelper.Create(
+            DisposeTracked();
+            Track(
                 numText.Subscribe(t => _saveSlotNumber.Value = string.Format(t, _slotNumber), 
                     $"Slot: {_slotNumber}"),
                 dateText.Subscribe(t => _saveDate.Value = string.Format(t, meta.SavedAt.ToString("G")), 
@@ -65,15 +65,6 @@ namespace SackranyUI.Default.MainMenu
         protected override void OnInitialized()
         {
             
-        }
-        protected override void OnDispose()
-        {
-            _disposables?.Dispose();
-            _saveSlotImage.Dispose();
-            _saveDate.Dispose();
-            _saveTime.Dispose();
-            _saveSlotNumber.Dispose();
-            _saveSlotActive.Dispose();
         }
         
         public event Action<int> OnContinueGame; 

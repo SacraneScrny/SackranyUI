@@ -30,8 +30,6 @@ namespace SackranyUI.Default.MainMenu
         
         [Bind("saveGameList")] ReactiveList<SaveSlotViewModel> _saveGameList = new();
         
-        CompositeDisposable _localizations;
-        
         #region Buttons
         [Bind("continue_button")]
         void ContinueButton()
@@ -81,7 +79,7 @@ namespace SackranyUI.Default.MainMenu
             _infoButtonEnabled.Value = Template.ShowInfoButton;
             _exitButtonEnabled.Value = Template.ShowExitButton;
 
-            _localizations = CompositeDisposableHelper.Create(
+            Track(
                 Template.ContinueText?.Subscribe(t => _continueText.Value = t, "Continue"),
                 Template.NewGameText?.Subscribe(t => _newGameText.Value = t, "New Game"),
                 Template.SettingsText?.Subscribe(t => _settingsText.Value = t, "Settings"),
@@ -111,24 +109,6 @@ namespace SackranyUI.Default.MainMenu
         {
             DataManager.StartSession();
             SceneLoader.Load(Template.GameScene);
-        }
-        protected override void OnDispose()
-        {
-            _localizations?.Dispose();
-            
-            _continueButtonEnabled.Dispose();
-            _newGameButtonEnabled.Dispose();
-            _settingsButtonEnabled.Dispose();
-            _infoButtonEnabled.Dispose();
-            _exitButtonEnabled.Dispose();
-            
-            _continueText.Dispose();
-            _newGameText.Dispose();
-            _settingsText.Dispose();
-            _infoText.Dispose();
-            _exitText.Dispose();
-            
-            _saveGameList.Dispose();
         }
     }
 

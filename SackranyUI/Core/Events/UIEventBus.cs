@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using R3;
+
 namespace SackranyUI.Core.Events
 {
     public class UIEventBus : IUIBusListener, IUIBusPublisher
@@ -10,8 +12,17 @@ namespace SackranyUI.Core.Events
         static readonly Type NoDataType = typeof(NoData);
         sealed class NoData { }
 
-        public void Subscribe<E>(Action callback) where E : IUIEvent => SubscribeInternal((UIEvent<E>.Id, NoDataType), callback);
-        public void Subscribe<E, T>(Action<T> callback) where E : IUIEvent => SubscribeInternal((UIEvent<E>.Id, typeof(T)), callback);
+        public IDisposable Subscribe<E>(Action callback) where E : IUIEvent
+        {
+            SubscribeInternal((UIEvent<E>.Id, NoDataType), callback);
+            return Disposable.Create(() => Unsubscribe<E>(callback));
+        }
+
+        public IDisposable Subscribe<E, T>(Action<T> callback) where E : IUIEvent
+        {
+            SubscribeInternal((UIEvent<E>.Id, typeof(T)), callback);
+            return Disposable.Create(() => Unsubscribe<E, T>(callback));
+        }
         
         void SubscribeInternal((int, Type) key, Delegate d)
         {

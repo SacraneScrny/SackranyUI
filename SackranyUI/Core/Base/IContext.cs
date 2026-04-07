@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 
 using UnityEngine;
 
 namespace SackranyUI.Core.Base
 {
-    public interface IContext
+    public interface IContextUser
     {
         public ViewModel[] Add(IEnumerable<IViewModelTemplate> viewModels, Transform root);
         public ViewModel Add(IViewModelTemplate viewModelTemplate, Transform root);
@@ -31,5 +32,10 @@ namespace SackranyUI.Core.Base
                 models[i].Dispose();
             return models.Length > 0;
         }
+    }
+
+    public interface IContext : IContextUser
+    {
+        public void Init(Transform root, CancellationToken ct);
     }
 }

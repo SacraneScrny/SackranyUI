@@ -2,7 +2,7 @@
 
 namespace SackranyUI.Core.Components
 {
-    [AddComponentMenu("Sackrany/CollectionAnchor")]
+    [AddComponentMenu("Sackrany/UI/CollectionAnchor")]
     public class CollectionAnchor : MonoBehaviour
     {
         public Transform Container;

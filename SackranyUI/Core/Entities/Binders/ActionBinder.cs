@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace SackranyUI.Core.Entities.Binders
 {
-    public class ActionBinder : IBinder
+    internal class ActionBinder : IBinder
     {
         readonly Action _subscribe;
         readonly Action _unsubscribe;

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace SackranyUI.Core.Base
 {
-    public class ViewModelData
+    internal class ViewModelData
     {
         public ViewModel ViewModel;
         public GameObject Prefab;

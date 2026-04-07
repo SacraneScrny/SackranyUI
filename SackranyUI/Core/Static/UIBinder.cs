@@ -6,9 +6,9 @@ using SackranyUI.Core.Entities;
 
 namespace SackranyUI.Core.Static
 {
-    public static class UIBinder
+    internal static class UIBinder
     {
-        public static IBinder[] Bind(ViewModel viewModel, IEnumerable<View> views)
+        internal static IBinder[] Bind(ViewModel viewModel, IEnumerable<View> views)
         {
             var binders = new List<IBinder>();
             var vmMeta = ViewModelReflectionCache.GetViewModelMetadata(viewModel.GetType());
@@ -63,7 +63,7 @@ namespace SackranyUI.Core.Static
 
             return binders.ToArray();
         }
-        public static void BindInits(ViewModel viewModel, IEnumerable<View> views)
+        internal static void BindInits(ViewModel viewModel, IEnumerable<View> views)
         {
             var vmMeta = ViewModelReflectionCache.GetViewModelMetadata(viewModel.GetType());
             var viewArray = views as View[] ?? views.ToArray();

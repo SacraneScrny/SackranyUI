@@ -128,7 +128,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 17711150}
-  - component: {fileID: 17711149}
   - component: {fileID: 17711148}
   m_Layer: 0
   m_Name: UserInterface
@@ -153,6 +152,8 @@ MonoBehaviour:
   Default:
   - rid: 7093579693090668631
   - rid: 7093579693090668633
+  Context:
+    rid: 7093579693090668644
   references:
     version: 2
     RefIds:
@@ -369,18 +370,9 @@ MonoBehaviour:
           m_FallbackState: 0
           m_WaitForCompletion: 0
           m_LocalVariables: []
---- !u!114 &17711149
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 17711147}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31a2d6d7e8f94a12b22e655573fa3fdd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Sackrany.UI.Main.UIValidator
+    - rid: 7093579693090668644
+      type: {class: UIContext, ns: SackranyUI.Core.Entities, asm: SackranyUiCore}
+      data: 
 --- !u!4 &17711150
 Transform:
   m_ObjectHideFlags: 0

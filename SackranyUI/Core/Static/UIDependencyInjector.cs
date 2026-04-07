@@ -1,8 +1,8 @@
 ﻿namespace SackranyUI.Core.Static
 {
-    public static class UIDependencyInjector
+    internal static class UIDependencyInjector
     {
-        public static bool Inject(object viewModel, object template = null)
+        internal static bool Inject(object viewModel, object template = null)
         {
             var ret = true;
             ret &= InjectTemplate(viewModel, template);

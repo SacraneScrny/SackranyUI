@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace SackranyUI.Core.Entities
 {
-    public static class UIBindingValidator
+    internal static class UIBindingValidator
     {
         [System.Diagnostics.Conditional("UNITY_EDITOR")]
         public static void Validate(ViewModel viewModel, View[] views)
