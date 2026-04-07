@@ -34,7 +34,7 @@ namespace SackranyUI.Core.Base
         }
     }
 
-    public interface IContext : IContextUser
+    public interface IContext : IContextUser, IDisposable
     {
         public void Init(Transform root, CancellationToken ct);
     }

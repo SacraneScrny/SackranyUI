@@ -163,7 +163,7 @@ MonoBehaviour:
       type: {class: MainMenu, ns: SackranyUI.Default.MainMenu, asm: Assembly-CSharp}
       data:
         UIPrefab: {fileID: 1432306984}
-        GameScene: Game
+        GameScene: SampleScene
         OnlyOneSlot: 0
         ShowContinueButton: 0
         ShowNewGameButton: 1

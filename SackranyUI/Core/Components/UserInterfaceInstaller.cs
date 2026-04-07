@@ -44,5 +44,9 @@ namespace SackranyUI.Core.Components
         {
             Context.Add(Default, Content);
         }
+        void OnDestroy()
+        {
+            Context?.Dispose();
+        }
     }
 }

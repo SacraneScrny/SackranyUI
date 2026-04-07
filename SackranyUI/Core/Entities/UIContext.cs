@@ -149,5 +149,17 @@ namespace SackranyUI.Core.Entities
             if (!_viewModels.TryGetValue(id, out var viewModelData)) return;
             UIBinder.BindInits(viewModelData.ViewModel, viewModelData.Views);
         }
+
+        bool _disposed;
+        public void Dispose()
+        {
+            if (_disposed) return;
+            
+            _eventBus.Reset();
+            while (_viewModels.Count > 0)
+                _viewModels.First().Value.ViewModel.Dispose();
+            
+            _disposed = true;
+        }
     }
 }
