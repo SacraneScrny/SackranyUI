@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using R3;
@@ -34,11 +35,13 @@ namespace SackranyUI.Core.Entities.Binders
         {
             Unbind();
 
-            foreach (var item in _list.Items)
-                Spawn(item);
+            for (int i = 0; i < _list.Items.Count; i++)
+                Insert(i, _list.Items[i]);
 
-            _subscriptions.Add(_list.OnAdd.Subscribe(e => Spawn(e.item)));
-            _subscriptions.Add(_list.OnRemove.Subscribe(e => Despawn(e.item)));
+            _subscriptions.Add(_list.OnAdd.Subscribe(e => Insert(e.index, e.item)));
+            _subscriptions.Add(_list.OnRemove.Subscribe(e => RemoveAt(e.index)));
+            _subscriptions.Add(_list.OnReplace.Subscribe(e => Replace(e.index, e.item)));
+            _subscriptions.Add(_list.OnMove.Subscribe(e => Move(e.from, e.to)));
             _subscriptions.Add(_list.OnReset.Subscribe(_ => DespawnAll()));
         }
 
@@ -49,45 +52,95 @@ namespace SackranyUI.Core.Entities.Binders
             DespawnAll();
         }
 
-        void Spawn(TItemVM vm)
+        void Insert(int index, TItemVM vm)
         {
-            var go = Object.Instantiate(_prefab, _container);
-            go.SetActive(true);
-            var views = go.GetComponentsInChildren<View>();
-            var anchors = go.GetComponentsInChildren<Anchor>().ToDictionary(x => x.Key, x => x.transform);
-            var binders = UIBinder.Bind(vm, views);
+            if (index < 0 || index > _instances.Count) index = _instances.Count;
 
-            vm.Initialize(vm, vm, vm, go.transform, anchors, _owner.CancellationTokenSource.Token);
-            foreach (var view in views)
-                view.Initialize(vm.CancellationTokenSource.Token);
-            
-            UIBinder.BindInits(vm, views);
-            foreach (var b in binders)
-                b.Bind();
+            GameObject go = null;
+            try
+            {
+                go = Object.Instantiate(_prefab, _container);
+                go.SetActive(true);
+                go.transform.SetSiblingIndex(index);
 
-            _instances.Add((vm, go, binders));
+                var views = go.GetComponentsInChildren<View>();
+                var anchors = go.GetComponentsInChildren<Anchor>().ToDictionary(x => x.Key, x => x.transform);
+                var transitions = CollectTransitions(go);
+                var binders = UIBinder.Bind(vm, views);
+
+                // Элементы коллекции живут в контексте и шине владельца, а не в самих себе (#1).
+                vm.Initialize(
+                    _owner.Context,
+                    _owner.EventListener,
+                    _owner.EventPublisher,
+                    go.transform,
+                    anchors,
+                    _owner.CancellationTokenSource.Token,
+                    transitions);
+
+                foreach (var view in views)
+                    view.Initialize(vm.CancellationTokenSource.Token);
+
+                UIBinder.BindInits(vm, views);
+                foreach (var b in binders)
+                    b.Bind();
+
+                _instances.Insert(index, (vm, go, binders));
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                if (go != null) Object.Destroy(go);
+            }
         }
 
-        void Despawn(TItemVM vm)
+        void RemoveAt(int index)
         {
-            var idx = _instances.FindIndex(x => x.vm.Equals(vm));
-            if (idx < 0) return;
+            if (index < 0 || index >= _instances.Count) return;
 
-            var (_, go, binders) = _instances[idx];
+            var (vm, go, binders) = _instances[index];
+            _instances.RemoveAt(index);
+
             foreach (var b in binders) b.Unbind();
             vm.Dispose();
-            Object.Destroy(go);
-            _instances.RemoveAt(idx);
+            if (go != null) Object.Destroy(go);
+        }
+
+        void Replace(int index, TItemVM vm)
+        {
+            RemoveAt(index);
+            Insert(index, vm);
+        }
+
+        void Move(int from, int to)
+        {
+            if (from < 0 || from >= _instances.Count) return;
+            if (to < 0 || to >= _instances.Count) return;
+            if (from == to) return;
+
+            var instance = _instances[from];
+            _instances.RemoveAt(from);
+            _instances.Insert(to, instance);
+            if (instance.go != null)
+                instance.go.transform.SetSiblingIndex(to);
         }
 
         void DespawnAll()
         {
-            foreach (var (_, go, binders) in _instances)
+            for (int i = _instances.Count - 1; i >= 0; i--)
             {
+                var (vm, go, binders) = _instances[i];
                 foreach (var b in binders) b.Unbind();
+                vm.Dispose();
                 if (go != null) Object.Destroy(go);
             }
             _instances.Clear();
+        }
+
+        static IReadOnlyList<IUITransition> CollectTransitions(GameObject go)
+        {
+            var found = go.GetComponentsInChildren<MonoBehaviour>(true).OfType<IUITransition>().ToArray();
+            return found.Length > 0 ? found : null;
         }
     }
 }

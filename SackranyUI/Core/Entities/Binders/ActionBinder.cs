@@ -1,11 +1,12 @@
-﻿using System;
+using System;
 
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace SackranyUI.Core.Entities.Binders
 {
-    internal class ActionBinder : IBinder
+    internal sealed class ActionBinder : IBinder
     {
         readonly Action _subscribe;
         readonly Action _unsubscribe;
@@ -13,7 +14,17 @@ namespace SackranyUI.Core.Entities.Binders
 
         public ActionBinder(Button button, Action onEvent)
         {
-            _cachedAction = new UnityAction(onEvent.Invoke);
+            _cachedAction = () =>
+            {
+                try
+                {
+                    onEvent();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+            };
             _subscribe = () => button.onClick.AddListener(_cachedAction);
             _unsubscribe = () => button.onClick.RemoveListener(_cachedAction);
         }

@@ -11,15 +11,17 @@ namespace SackranyUI.Core.Views
     public class TextView : View
     {
         public string TextKey = "text";
+        public string ColorKey = "text_color";
         public string TextActiveKey = "text_active";
 
-        [OutputBind("text")] public TMP_Text Text;
+        [OutputBind("text")] [OutputBind("text_color")] public TMP_Text Text;
         [OutputBind("text_active")] GameObject _textGo;
 
         protected override void OnBeforeBinding()
         {
-            _textGo = Text.gameObject;
+            if (Text != null) _textGo = Text.gameObject;
             Remap("text", TextKey);
+            Remap("text_color", ColorKey);
             Remap("text_active", TextActiveKey);
         }
 

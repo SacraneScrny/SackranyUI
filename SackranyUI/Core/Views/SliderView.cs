@@ -22,7 +22,7 @@ namespace SackranyUI.Core.Views
 
         protected override void OnBeforeBinding()
         {
-            _sliderGo = Slider.gameObject;
+            if (Slider != null) _sliderGo = Slider.gameObject;
             Remap("label", LabelKey);
             Remap("slider", SliderKey);
             Remap("slider_active", SliderActiveKey);

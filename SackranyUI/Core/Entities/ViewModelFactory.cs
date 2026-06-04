@@ -29,18 +29,20 @@ namespace SackranyUI.Core.Entities
             var prefab = Object.Instantiate(template.Prefab(), contentRoot);
             var views = prefab.GetComponentsInChildren<View>();
             var anchors = prefab.GetComponentsInChildren<Anchor>().ToDictionary(x => x.Key, x => x.transform);
+            var transitions = prefab.GetComponentsInChildren<MonoBehaviour>(true).OfType<IUITransition>().ToArray();
             foreach (var view in views)
                 view.PreInitialize();
             var binders = UIBinder.Bind(viewModel, views);
             prefab.SetActive(false);
-            
+
             return new ViewModelData()
             {
                 Prefab = prefab,
                 ViewModel = viewModel,
                 Views = views,
                 Binders = binders,
-                Anchors = anchors
+                Anchors = anchors,
+                Transitions = transitions.Length > 0 ? transitions : null
             };
         }
 
@@ -52,7 +54,7 @@ namespace SackranyUI.Core.Entities
             CancellationToken token = default
             )
         {
-            data.ViewModel.Initialize(context, listener, publisher, data.Prefab.transform, data.Anchors, token);
+            data.ViewModel.Initialize(context, listener, publisher, data.Prefab.transform, data.Anchors, token, data.Transitions);
             foreach (var view in data.Views)
                 view.Initialize(data.ViewModel.CancellationTokenSource.Token);
             UIBinder.BindInits(data.ViewModel, data.Views);

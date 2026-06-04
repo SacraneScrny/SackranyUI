@@ -28,10 +28,10 @@ namespace SackranyUI.Core.Entities
             {
                 var viewMeta = ViewReflectionCache.GetViewMetadata(view.GetType());
 
-                Check(viewMeta.OutputFieldBindings.Select(f => (f.Id, f.Field.Name, "OutputBind field")), view, vmType, vmIds, matchedVmIds);
+                Check(viewMeta.OutputFieldBindings.Select(f => (f.Id, f.Member.Name, "OutputBind field")), view, vmType, vmIds, matchedVmIds);
                 Check(viewMeta.OutputMethodBindings.Select(m => (m.Id, m.Method.Name, "OutputBind method")), view, vmType, vmIds, matchedVmIds);
-                Check(viewMeta.InputFieldBindings.Select(f => (f.Id, f.Field.Name, "InputBind field")), view, vmType, vmIds, matchedVmIds);
-                Check(viewMeta.CollectionFieldBindings.Select(f => (f.Id, f.Field.Name, "CollectionBind field")), view, vmType, vmIds, matchedVmIds);
+                Check(viewMeta.InputFieldBindings.Select(f => (f.Id, f.Member.Name, "InputBind field")), view, vmType, vmIds, matchedVmIds);
+                Check(viewMeta.CollectionFieldBindings.Select(f => (f.Id, f.Member.Name, "CollectionBind field")), view, vmType, vmIds, matchedVmIds);
             }
 
             foreach (var id in vmIds.Where(id => !matchedVmIds.Contains(id)))

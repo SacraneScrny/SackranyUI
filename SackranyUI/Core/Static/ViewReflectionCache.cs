@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -28,30 +28,26 @@ namespace SackranyUI.Core.Static
         }
         public readonly struct InputField
         {
-            public readonly FieldInfo Field;
-            public readonly Type Type;
+            public readonly MemberRef Member;
             public readonly object Id;
 
-            public InputField(FieldInfo field, Type type, object id)
+            public InputField(MemberRef member, object id)
             {
-                this.Field = field;
-                this.Type = type;
+                this.Member = member;
                 this.Id = id;
             }
-        }       
+        }
         public readonly struct OutputField
         {
-            public readonly FieldInfo Field;
-            public readonly Type Type;
+            public readonly MemberRef Member;
             public readonly object Id;
 
-            public OutputField(FieldInfo field, Type type, object id)
+            public OutputField(MemberRef member, object id)
             {
-                this.Field = field;
-                this.Type = type;
+                this.Member = member;
                 this.Id = id;
             }
-        }      
+        }
         public readonly struct OutputMethod
         {
             public readonly ParameterInfo Parameter;
@@ -64,25 +60,23 @@ namespace SackranyUI.Core.Static
                 this.Method = method;
                 this.Id = id;
             }
-        }  
+        }
         public readonly struct CollectionField
         {
-            public readonly FieldInfo Field;
-            public readonly Type Type;
+            public readonly MemberRef Member;
             public readonly object Id;
 
-            public CollectionField(FieldInfo field, Type type, object id)
+            public CollectionField(MemberRef member, object id)
             {
-                Field = field;
-                Type = type;
+                Member = member;
                 Id = id;
             }
         }
-        
+
         static readonly Dictionary<Type, ViewMetadata> _vCache = new();
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         static void Init() => _vCache.Clear();
-        
+
         public static ViewMetadata GetViewMetadata(Type type)
         {
             if (_vCache.TryGetValue(type, out ViewMetadata metadata))
@@ -98,47 +92,50 @@ namespace SackranyUI.Core.Static
             var inputFieldBinds = new List<InputField>();
             var collectionBinds = new List<CollectionField>();
 
+            const BindingFlags memberFlags =
+                BindingFlags.Instance |
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.DeclaredOnly;
+
             var current = type;
             while (current != null && current != typeof(object))
             {
-                var fields = current.GetFields(
-                    BindingFlags.Instance |
-                    BindingFlags.Public |
-                    BindingFlags.NonPublic |
-                    BindingFlags.DeclaredOnly
-                );
-                var methods = current.GetMethods(
-                    BindingFlags.Public |
-                    BindingFlags.NonPublic |
-                    BindingFlags.Instance |
-                    BindingFlags.DeclaredOnly
-                );
+                foreach (var field in current.GetFields(memberFlags))
+                    CollectMember(new MemberRef(field), field, fieldBinds, inputFieldBinds, collectionBinds);
 
-                foreach (var field in fields)
+                foreach (var property in current.GetProperties(memberFlags))
                 {
-                    if (field.GetCustomAttribute<OutputBindAttribute>() is { } d)
-                        fieldBinds.Add(new OutputField(field, field.FieldType, d.id));
-                    if (field.GetCustomAttribute<InputBindAttribute>() is { } c)
-                        inputFieldBinds.Add(new InputField(field, field.FieldType, c.id));
-                    if (field.GetCustomAttribute<CollectionBindAttribute>() is { } col)
-                        collectionBinds.Add(new CollectionField(field, field.FieldType, col.id));
+                    if (!property.CanRead || property.GetIndexParameters().Length > 0)
+                        continue;
+                    CollectMember(new MemberRef(property), property, fieldBinds, inputFieldBinds, collectionBinds);
                 }
 
-                foreach (var method in methods)
+                foreach (var method in current.GetMethods(memberFlags))
                 {
-                    if (method.GetCustomAttribute<OutputBindAttribute>() is { } m)
-                    {
-                        var param = method.GetParameters();
-                        if (param.Length != 1) continue;
+                    var param = method.GetParameters();
+                    if (param.Length != 1) continue;
+                    foreach (var m in method.GetCustomAttributes<OutputBindAttribute>())
                         methodBinds.Add(new OutputMethod(param[0], method, m.id));
-                    }
                 }
-                
+
                 current = current.BaseType;
             }
-            
+
             return new ViewMetadata(fieldBinds.ToArray(), methodBinds.ToArray(),
                 inputFieldBinds.ToArray(), collectionBinds.ToArray());
+        }
+
+        static void CollectMember(
+            MemberRef member, MemberInfo source,
+            List<OutputField> outputs, List<InputField> inputs, List<CollectionField> collections)
+        {
+            foreach (var d in source.GetCustomAttributes<OutputBindAttribute>())
+                outputs.Add(new OutputField(member, d.id));
+            foreach (var c in source.GetCustomAttributes<InputBindAttribute>())
+                inputs.Add(new InputField(member, c.id));
+            foreach (var col in source.GetCustomAttributes<CollectionBindAttribute>())
+                collections.Add(new CollectionField(member, col.id));
         }
     }
 }

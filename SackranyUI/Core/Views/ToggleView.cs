@@ -22,7 +22,7 @@ namespace SackranyUI.Core.Views
 
         protected override void OnBeforeBinding()
         {
-            _toggleGo = Toggle.gameObject;
+            if (Toggle != null) _toggleGo = Toggle.gameObject;
             Remap("label", LabelKey);
             Remap("toggle", ToggleKey);
             Remap("toggle_active", ToggleActiveKey);

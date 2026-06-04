@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -38,17 +38,15 @@ namespace SackranyUI.Core.Static
         }
         public readonly struct BindField
         {
-            public readonly FieldInfo Field;
-            public readonly Type Type;
+            public readonly MemberRef Member;
             public readonly object Id;
 
-            public BindField(FieldInfo field, Type type, object id)
+            public BindField(MemberRef member, object id)
             {
-                this.Field = field;
-                this.Type = type;
+                this.Member = member;
                 this.Id = id;
             }
-        }        
+        }
         public readonly struct BindMethod
         {
             public readonly ParameterInfo Parameter;
@@ -66,7 +64,7 @@ namespace SackranyUI.Core.Static
         static readonly Dictionary<Type, ViewModelMetadata> _vmCache = new();
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         static void Init() => _vmCache.Clear();
-        
+
         public static ViewModelMetadata GetViewModelMetadata(Type type)
         {
             if (_vmCache.TryGetValue(type, out ViewModelMetadata metadata))
@@ -82,46 +80,52 @@ namespace SackranyUI.Core.Static
             var initBinds = new List<BindField>();
             var methodBinds = new List<BindMethod>();
 
+            const BindingFlags memberFlags =
+                BindingFlags.Instance |
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.DeclaredOnly;
+
             var current = type;
             while (current != null && current != typeof(object))
             {
-                var fields = current.GetFields(
-                    BindingFlags.Instance |
-                    BindingFlags.Public |
-                    BindingFlags.NonPublic |
-                    BindingFlags.DeclaredOnly
-                );
-                var methods = current.GetMethods(
-                    BindingFlags.Public |
-                    BindingFlags.NonPublic |
-                    BindingFlags.Instance |
-                    BindingFlags.DeclaredOnly
-                );
-
-                foreach (var field in fields)
+                foreach (var field in current.GetFields(memberFlags))
                 {
-                    if (field.GetCustomAttribute<UITemplateAttribute>() is { } t)
-                        templateField = new TemplateField(field, field.FieldType);
-                    else if (field.GetCustomAttribute<BindAttribute>() is { } d)
-                        bindings.Add(new BindField(field, field.FieldType, d.id));
-                    else if (field.GetCustomAttribute<InitBindAttribute>() is { } i)
-                        initBinds.Add(new BindField(field, field.FieldType, i.id));
-                }
-
-                foreach (var method in methods)
-                {
-                    if (method.GetCustomAttribute<BindAttribute>() is { } m)
+                    if (field.GetCustomAttribute<UITemplateAttribute>() is { })
                     {
-                        var all_params = method.GetParameters();
-                        var param = all_params.Length == 1 ? all_params[0] : null;
-                        methodBinds.Add(new BindMethod(param, method, m.id));
+                        templateField = new TemplateField(field, field.FieldType);
+                        continue;
                     }
+                    CollectBindMember(new MemberRef(field), field, bindings, initBinds);
                 }
-                
+
+                foreach (var property in current.GetProperties(memberFlags))
+                {
+                    if (!property.CanRead || property.GetIndexParameters().Length > 0)
+                        continue;
+                    CollectBindMember(new MemberRef(property), property, bindings, initBinds);
+                }
+
+                foreach (var method in current.GetMethods(memberFlags))
+                {
+                    var allParams = method.GetParameters();
+                    var param = allParams.Length == 1 ? allParams[0] : null;
+                    foreach (var m in method.GetCustomAttributes<BindAttribute>())
+                        methodBinds.Add(new BindMethod(param, method, m.id));
+                }
+
                 current = current.BaseType;
             }
-            
+
             return new ViewModelMetadata(templateField, bindings.ToArray(), initBinds.ToArray(), methodBinds.ToArray());
+        }
+
+        static void CollectBindMember(MemberRef member, MemberInfo source, List<BindField> bindings, List<BindField> initBinds)
+        {
+            foreach (var d in source.GetCustomAttributes<BindAttribute>())
+                bindings.Add(new BindField(member, d.id));
+            foreach (var i in source.GetCustomAttributes<InitBindAttribute>())
+                initBinds.Add(new BindField(member, i.id));
         }
     }
 }

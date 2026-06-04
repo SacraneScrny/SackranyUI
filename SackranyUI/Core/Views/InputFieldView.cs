@@ -21,7 +21,7 @@ namespace SackranyUI.Core.Views
 
         protected override void OnBeforeBinding()
         {
-            _inputGo = InputField.gameObject;
+            if (InputField != null) _inputGo = InputField.gameObject;
             Remap("label", LabelKey);
             Remap("input", InputKey);
             Remap("input_active", InputActiveKey);

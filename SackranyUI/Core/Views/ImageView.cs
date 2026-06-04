@@ -19,7 +19,7 @@ namespace SackranyUI.Core.Views
 
         protected override void OnBeforeBinding()
         {
-            _imageGo = Image.gameObject;
+            if (Image != null) _imageGo = Image.gameObject;
             Remap("sprite", SpriteKey);
             Remap("color", ColorKey);
             Remap("fill", FillKey);

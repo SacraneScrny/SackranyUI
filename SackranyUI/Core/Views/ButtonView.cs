@@ -22,7 +22,7 @@ namespace SackranyUI.Core.Views
 
         protected override void OnBeforeBinding()
         {
-            _buttonGo = Button.gameObject;
+            if (Button != null) _buttonGo = Button.gameObject;
             Remap("title_text", TitleKey);
             Remap("button", ButtonKey);
             Remap("button_active", ButtonActiveKey);

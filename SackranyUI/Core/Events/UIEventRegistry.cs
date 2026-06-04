@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using UnityEngine;
-
 namespace SackranyUI.Core.Events
 {
     public static class UIEventRegistry
     {
         static readonly Dictionary<Type, int> _typeToId = new();
         static readonly List<Type> _idToType = new();
-        static int _nextId;
+        static int _nextId = int.MinValue;
         static readonly object _registryLock = new();
 
         static readonly Dictionary<Type, IUIEvent> _instances = new();
         static readonly object _instanceLock = new();
 
-        public static int Count { get { lock (_registryLock) return _nextId; } }
+        public static int Count { get { lock (_registryLock) return _idToType.Count; } }
 
         public static int GetId<T>() where T : IUIEvent => Id<T>.Value;
         public static int GetId(Type type)
@@ -39,7 +37,10 @@ namespace SackranyUI.Core.Events
         public static Type GetTypeById(int id)
         {
             lock (_registryLock)
-                return id >= 0 && id < _idToType.Count ? _idToType[id] : null;
+            {
+                var index = (long)id - int.MinValue;
+                return index >= 0 && index < _idToType.Count ? _idToType[(int)index] : null;
+            }
         }
 
         public static IUIEvent GetInstance<T>() where T : IUIEvent => Id<T>.Instance;
@@ -67,8 +68,5 @@ namespace SackranyUI.Core.Events
                 return inst;
             }
         }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        static void Init() => _nextId = int.MinValue;
     }
 }
