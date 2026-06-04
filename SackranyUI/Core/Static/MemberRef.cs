@@ -3,10 +3,6 @@ using System.Reflection;
 
 namespace SackranyUI.Core.Static
 {
-    /// <summary>
-    /// Унифицированная ссылка на читаемый член (поле или свойство),
-    /// чтобы привязки работали и по полям, и по свойствам.
-    /// </summary>
     public readonly struct MemberRef
     {
         readonly FieldInfo _field;

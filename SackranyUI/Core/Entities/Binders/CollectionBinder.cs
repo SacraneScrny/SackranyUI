@@ -68,7 +68,6 @@ namespace SackranyUI.Core.Entities.Binders
                 var transitions = CollectTransitions(go);
                 var binders = UIBinder.Bind(vm, views);
 
-                // Элементы коллекции живут в контексте и шине владельца, а не в самих себе (#1).
                 vm.Initialize(
                     _owner.Context,
                     _owner.EventListener,

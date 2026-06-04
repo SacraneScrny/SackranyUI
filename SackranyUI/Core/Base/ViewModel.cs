@@ -85,7 +85,6 @@ namespace SackranyUI.Core.Base
         }
         protected virtual void OnClosed() { }
 
-        /// <summary>Открытие с проигрыванием анимаций показа и асинхронного хука.</summary>
         public async UniTask OpenAsync()
         {
             if (IsOpened) return;
@@ -95,7 +94,6 @@ namespace SackranyUI.Core.Base
             await PlayTransitions(show: true, token);
             await SafeAsync(OnOpenedAsync(token));
         }
-        /// <summary>Закрытие: сначала асинхронный хук и анимации скрытия, затем деактивация.</summary>
         public async UniTask CloseAsync()
         {
             if (!IsOpened) return;

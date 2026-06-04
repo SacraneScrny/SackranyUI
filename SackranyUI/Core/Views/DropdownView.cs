@@ -1,31 +1,27 @@
-using SackranyUI.Core.Base;
 using SackranyUI.Core.Entities;
 
 using TMPro;
 
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace SackranyUI.Core.Views
 {
     [AddComponentMenu("Sackrany/UI/General/Dropdown")]
-    public class DropdownView : View
+    public class DropdownView : SelectableView
     {
         public string LabelKey = "label";
         public string DropdownKey = "dropdown";
-        public string DropdownActiveKey = "dropdown_active";
-        public string DropdownInteractableKey = "dropdown_interactable";
 
         [OutputBind("label")] public TMP_Text Label;
-        [InputBind("dropdown")] [OutputBind("dropdown")] [OutputBind("dropdown_interactable")] public TMP_Dropdown Dropdown;
-        [OutputBind("dropdown_active")] GameObject _dropdownGo;
+        [InputBind("dropdown")] [OutputBind("dropdown")] public TMP_Dropdown Dropdown;
 
-        protected override void OnBeforeBinding()
+        protected override Selectable Target => Dropdown;
+
+        protected override void OnSelectableBinding()
         {
-            if (Dropdown != null) _dropdownGo = Dropdown.gameObject;
             Remap("label", LabelKey);
             Remap("dropdown", DropdownKey);
-            Remap("dropdown_active", DropdownActiveKey);
-            Remap("dropdown_interactable", DropdownInteractableKey);
         }
 
         #if UNITY_EDITOR

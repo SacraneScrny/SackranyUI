@@ -42,8 +42,6 @@ namespace SackranyUI.Core.Entities
         static readonly Dictionary<Type, Type> _reactivePropertyTypeCache = new();
         static readonly Dictionary<Type, Type> _actionTypeCache = new();
 
-        // ─── Generic builders (invoked via reflection) ───────────────────────────────
-
         static IBinder MakeGenericBinder<T>(ReadOnlyReactiveProperty<T> prop, Action<T> setter)
             => new GenericBinder<T>(prop, setter);
 
@@ -57,8 +55,6 @@ namespace SackranyUI.Core.Entities
             ReactiveList<TItemVM> list, Transform container, GameObject prefab, ViewModel owner)
             where TItemVM : ViewModel
             => new CollectionBinder<TItemVM>(list, container, prefab, owner);
-
-        // ─── Helpers ─────────────────────────────────────────────────────────────────
 
         static TValue GetOrAdd<TKey, TValue>(Dictionary<TKey, TValue> cache, TKey key, Func<TKey, TValue> create)
         {
@@ -82,8 +78,6 @@ namespace SackranyUI.Core.Entities
             valueType = null;
             return false;
         }
-
-        // ─── Public API ───────────────────────────────────────────────────────────────
 
         public static void ApplyInitialValue(object vmValue, object viewField)
         {

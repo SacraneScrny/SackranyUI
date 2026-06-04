@@ -1,4 +1,3 @@
-﻿using SackranyUI.Core.Base;
 using SackranyUI.Core.Entities;
 
 using TMPro;
@@ -9,24 +8,20 @@ using UnityEngine.UI;
 namespace SackranyUI.Core.Views
 {
     [AddComponentMenu("Sackrany/UI/General/Toggle")]
-    public class ToggleView : View
+    public class ToggleView : SelectableView
     {
         public string LabelKey = "label";
         public string ToggleKey = "toggle";
-        public string ToggleActiveKey = "toggle_active";
-        public string ToggleInteractableKey = "toggle_interactable";
 
         [OutputBind("label")] public TMP_Text Label;
-        [InputBind("toggle")] [OutputBind("toggle_interactable")] public Toggle Toggle;
-        [OutputBind("toggle_active")] GameObject _toggleGo;
+        [InputBind("toggle")] [OutputBind("toggle")] public Toggle Toggle;
 
-        protected override void OnBeforeBinding()
+        protected override Selectable Target => Toggle;
+
+        protected override void OnSelectableBinding()
         {
-            if (Toggle != null) _toggleGo = Toggle.gameObject;
             Remap("label", LabelKey);
             Remap("toggle", ToggleKey);
-            Remap("toggle_active", ToggleActiveKey);
-            Remap("toggle_interactable", ToggleInteractableKey);
         }
 
         #if UNITY_EDITOR
