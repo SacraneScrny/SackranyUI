@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace SackranyUI.Core.Entities.Binders
@@ -10,11 +11,21 @@ namespace SackranyUI.Core.Entities.Binders
         readonly Action _unsubscribe;
         readonly UnityAction<T> _cachedAction;
 
-        public InputBinder(Action<T> onValue, 
+        public InputBinder(Action<T> onValue,
             Action<UnityAction<T>> addListener,
             Action<UnityAction<T>> removeListener)
         {
-            _cachedAction = new UnityAction<T>(onValue);
+            _cachedAction = value =>
+            {
+                try
+                {
+                    onValue(value);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+            };
             _subscribe = () => addListener(_cachedAction);
             _unsubscribe = () => removeListener(_cachedAction);
         }

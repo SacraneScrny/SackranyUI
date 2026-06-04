@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
+
+using Cysharp.Threading.Tasks;
 
 using R3;
 
@@ -13,7 +14,7 @@ using UnityEngine;
 
 namespace SackranyUI.Core.Base
 {
-    public abstract class ViewModel 
+    public abstract class ViewModel
         : IDisposable, IEquatable<ViewModel>,
             IUIBusListener, IUIBusPublisher, IContextUser
     {
@@ -21,42 +22,52 @@ namespace SackranyUI.Core.Base
         public readonly int Id = Interlocked.Increment(ref _globalId);
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         static void ResetId() => _globalId = 0;
-        
+
         public CancellationTokenSource CancellationTokenSource { get; private set; }
         public bool IsInitialized { get; private set; }
 
         public IContextUser Context { get; private set; }
         public IUIBusListener EventListener { get; private set; }
         public IUIBusPublisher EventPublisher { get; private set; }
-        
+
         protected Transform Root { get; private set; }
         protected IReadOnlyDictionary<string, Transform> Anchors;
-        
+        IReadOnlyList<IUITransition> _transitions;
+
         public bool HasContext => Context != null;
         public bool HasEventListener => EventListener != null;
         public bool HasEventPublisher => EventPublisher != null;
         public bool IsOpened { get; private set; }
-        
+
         public void Initialize(
             IContextUser context = null,
-            IUIBusListener eventListener = null, 
-            IUIBusPublisher eventPublisher = null, 
+            IUIBusListener eventListener = null,
+            IUIBusPublisher eventPublisher = null,
             Transform root = null,
             IReadOnlyDictionary<string, Transform> anchors = null,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default,
+            IReadOnlyList<IUITransition> transitions = null)
         {
+            if (IsInitialized)
+            {
+                Debug.LogWarning($"[SackranyUI] {GetType().Name} (Id={Id}) уже инициализирован — повторный Initialize проигнорирован.");
+                return;
+            }
+
             Context = context;
-            this.EventListener = eventListener;
-            this.EventPublisher = eventPublisher;
+            EventListener = eventListener;
+            EventPublisher = eventPublisher;
             Root = root;
             Anchors = anchors;
+            _transitions = transitions;
             CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            
+
             IsInitialized = true;
             OnInitialized();
         }
         protected abstract void OnInitialized();
 
+        #region OPEN / CLOSE
         public void Open()
         {
             if (IsOpened) return;
@@ -74,6 +85,46 @@ namespace SackranyUI.Core.Base
         }
         protected virtual void OnClosed() { }
 
+        public async UniTask OpenAsync()
+        {
+            if (IsOpened) return;
+            Open();
+
+            var token = CancellationTokenSource?.Token ?? CancellationToken.None;
+            await PlayTransitions(show: true, token);
+            await SafeAsync(OnOpenedAsync(token));
+        }
+        public async UniTask CloseAsync()
+        {
+            if (!IsOpened) return;
+
+            var token = CancellationTokenSource?.Token ?? CancellationToken.None;
+            await SafeAsync(OnClosingAsync(token));
+            await PlayTransitions(show: false, token);
+            Close();
+        }
+        protected virtual UniTask OnOpenedAsync(CancellationToken ct) => UniTask.CompletedTask;
+        protected virtual UniTask OnClosingAsync(CancellationToken ct) => UniTask.CompletedTask;
+
+        async UniTask PlayTransitions(bool show, CancellationToken token)
+        {
+            if (_transitions == null) return;
+            for (int i = 0; i < _transitions.Count; i++)
+            {
+                var transition = _transitions[i];
+                if (transition == null) continue;
+                await SafeAsync(show ? transition.Show(token) : transition.Hide(token));
+            }
+        }
+
+        static async UniTask SafeAsync(UniTask task)
+        {
+            try { await task; }
+            catch (OperationCanceledException) { }
+            catch (Exception e) { Debug.LogException(e); }
+        }
+        #endregion
+
         #region DISPOSE
         readonly CompositeDisposable _disposables = new();
         bool _disposed;
@@ -82,15 +133,20 @@ namespace SackranyUI.Core.Base
             if (_disposed) return;
             CancellationTokenSource?.Cancel();
             CancellationTokenSource?.Dispose();
-            
+
             var meta = ViewModelReflectionCache.GetViewModelMetadata(GetType());
             foreach (var field in meta.FieldBindings)
-                (field.Field.GetValue(this) as IDisposable)?.Dispose();
+                (field.Member.GetValue(this) as IDisposable)?.Dispose();
             DisposeTracked();
-            
+
             OnDispose();
             Disposed?.Invoke(this);
             _disposed = true;
+
+            Disposed = null;
+            Opened = null;
+            Closed = null;
+            Reiniting = null;
         }
         protected virtual void OnDispose() { }
 
@@ -110,8 +166,8 @@ namespace SackranyUI.Core.Base
         public event Action<ViewModel> Disposed;
         public event Action<ViewModel> Opened;
         public event Action<ViewModel> Closed;
-        public event Action<ViewModel> Reiniting; 
-        
+        public event Action<ViewModel> Reiniting;
+
         public override int GetHashCode() => Id;
         public bool Equals(ViewModel other)
         {
@@ -127,7 +183,7 @@ namespace SackranyUI.Core.Base
             if (obj.GetType() != GetType()) return false;
             return Equals((ViewModel)obj);
         }
-        
+
         public ViewModel[] Add(IEnumerable<IViewModelTemplate> viewModels, Transform root = null) => Context?.Add(viewModels, root);
         public ViewModel Add(IViewModelTemplate viewModelTemplate, Transform root = null) => Context?.Add(viewModelTemplate, root);
         public bool Has<T>(Func<T, bool> cond = null) where T : ViewModel => Context != null && Context.Has(cond);
@@ -143,14 +199,14 @@ namespace SackranyUI.Core.Base
             result = Array.Empty<T>();
             return HasContext && Context.TryGetAll(out result, cond);
         }
-        
+
         public IDisposable Subscribe<E>(Action callback) where E : IUIEvent => EventListener.Subscribe<E>(callback);
         public IDisposable Subscribe<E, T>(Action<T> callback) where E : IUIEvent => EventListener.Subscribe<E, T>(callback);
         public void Unsubscribe<E>(Action callback) where E : IUIEvent => EventListener.Unsubscribe<E>(callback);
         public void Unsubscribe<E, T>(Action<T> callback) where E : IUIEvent => EventListener.Unsubscribe<E, T>(callback);
-        public bool Publish<E>() where E : IUIEvent 
+        public bool Publish<E>() where E : IUIEvent
             => EventPublisher.Publish<E>();
-        public bool Publish<E, T>(T data, bool includeNoDataChannel = false) where E : IUIEvent 
+        public bool Publish<E, T>(T data, bool includeNoDataChannel = false) where E : IUIEvent
             => EventPublisher.Publish<E, T>(data, includeNoDataChannel);
 
         public Transform GetAnchorOrDefault(string key) => Anchors.GetValueOrDefault(key) ?? Root;

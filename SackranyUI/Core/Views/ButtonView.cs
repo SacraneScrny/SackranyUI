@@ -1,4 +1,3 @@
-﻿using SackranyUI.Core.Base;
 using SackranyUI.Core.Entities;
 
 using TMPro;
@@ -9,24 +8,24 @@ using UnityEngine.UI;
 namespace SackranyUI.Core.Views
 {
     [AddComponentMenu("Sackrany/UI/General/Button")]
-    public class ButtonView : View
+    public class ButtonView : SelectableView
     {
         public string TitleKey = "title_text";
+        public string TitleColorKey = "title_color";
         public string ButtonKey = "button";
-        public string ButtonActiveKey = "button_active";
-        public string ButtonInteractableKey = "button_interactable";
 
         [OutputBind("title_text")] public TMP_Text Title;
-        [InputBind("button")] [OutputBind("button_interactable")] public Button Button;
-        [OutputBind("button_active")] GameObject _buttonGo;
+        [OutputBind("title_color")] TMP_Text _titleColor;
+        [InputBind("button")] public Button Button;
 
-        protected override void OnBeforeBinding()
+        protected override Selectable Target => Button;
+
+        protected override void OnSelectableBinding()
         {
-            _buttonGo = Button.gameObject;
+            _titleColor = Title;
             Remap("title_text", TitleKey);
+            Remap("title_color", TitleColorKey);
             Remap("button", ButtonKey);
-            Remap("button_active", ButtonActiveKey);
-            Remap("button_interactable", ButtonInteractableKey);
         }
 
         #if UNITY_EDITOR

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -21,6 +21,7 @@ namespace SackranyUI.Core.Base
         protected virtual void OnBeforeBinding() { }
         public void Initialize(CancellationToken cancellationToken)
         {
+            if (_isInitialized) return;
             _cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.GetCancellationTokenOnDestroy());
             _isInitialized = true;
             OnInitialize();
@@ -53,14 +54,14 @@ namespace SackranyUI.Core.Base
             OnUpdate();
         }
         protected virtual void OnUpdate() { }
-        
+
         void FixedUpdate()
         {
             if (!_isInitialized) { return; }
             OnFixedUpdate();
         }
         protected virtual void OnFixedUpdate() { }
-        
+
         void LateUpdate()
         {
             if (!_isInitialized) { return; }
@@ -76,7 +77,8 @@ namespace SackranyUI.Core.Base
         }
         void OnDestroy()
         {
-            _isInitialized = false;    
+            _isInitialized = false;
+            DisposeRunningTasks();
             _cancellationSource?.Cancel();
             _cancellationSource?.Dispose();
             OnDestroyView();
@@ -85,10 +87,13 @@ namespace SackranyUI.Core.Base
         #endregion
 
         #region TASKS
+        readonly HashSet<CancellationTokenSource> _runningTasks = new();
+
         public CancellationTokenSource StartTask(Func<CancellationToken, UniTask> taskFactory)
         {
             if (!_isInitialized) return null;
             var cts = new CancellationTokenSource();
+            _runningTasks.Add(cts);
             var trackedTask = TrackTask(taskFactory, cts);
             trackedTask.Forget();
             return cts;
@@ -96,7 +101,7 @@ namespace SackranyUI.Core.Base
 
         async UniTaskVoid TrackTask(Func<CancellationToken, UniTask> taskFactory, CancellationTokenSource cts)
         {
-            var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, this._cancellationSource.Token);
+            var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, _cancellationSource.Token);
             try
             {
                 await taskFactory(linkedCts.Token);
@@ -109,7 +114,25 @@ namespace SackranyUI.Core.Base
             finally
             {
                 linkedCts?.Dispose();
+                _runningTasks.Remove(cts);
                 cts?.Dispose();
+            }
+        }
+
+        void DisposeRunningTasks()
+        {
+            if (_runningTasks.Count == 0) return;
+            var snapshot = new CancellationTokenSource[_runningTasks.Count];
+            _runningTasks.CopyTo(snapshot);
+            _runningTasks.Clear();
+            foreach (var cts in snapshot)
+            {
+                try
+                {
+                    cts.Cancel();
+                    cts.Dispose();
+                }
+                catch (ObjectDisposedException) { }
             }
         }
         #endregion

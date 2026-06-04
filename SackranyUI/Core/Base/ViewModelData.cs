@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using SackranyUI.Core.Entities;
 
@@ -13,5 +13,6 @@ namespace SackranyUI.Core.Base
         public View[] Views;
         public IBinder[] Binders;
         public Dictionary<string, Transform> Anchors;
+        public IReadOnlyList<IUITransition> Transitions;
     }
 }

@@ -15,35 +15,35 @@ namespace SackranyUI.Core.Entities
     }
     
     [MeansImplicitUse]
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
     public sealed class BindAttribute : MemberBindAttribute
     {
         public BindAttribute(object id) : base(id) { }
     }
     [MeansImplicitUse]
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
     public sealed class InitBindAttribute : MemberBindAttribute
     {
         public InitBindAttribute(object id) : base(id) { }
     }
     [MeansImplicitUse]
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
     public sealed class InputBindAttribute : MemberBindAttribute
     {
         public InputBindAttribute(object id) : base(id) { }
-    }    
+    }
     [MeansImplicitUse]
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
     public sealed class OutputBindAttribute : MemberBindAttribute
     {
         public OutputBindAttribute(object id) : base(id) { }
     }
     [MeansImplicitUse]
-    [AttributeUsage(AttributeTargets.Field)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
     public sealed class CollectionBindAttribute : MemberBindAttribute
     {
         public CollectionBindAttribute(object id) : base(id) { }
-    }    
+    }
 
     [AttributeUsage(AttributeTargets.Field)]
     public sealed class UITemplateAttribute : Attribute

@@ -20,18 +20,18 @@ namespace SackranyUI.Core.Static
 
                 foreach (var vmField in vmMeta.FieldBindings)
                 {
-                    var vmValue = vmField.Field.GetValue(viewModel);
+                    var vmValue = vmField.Member.GetValue(viewModel);
 
                     foreach (var viewField in viewMeta.OutputFieldBindings)
                     {
                         if (vmField.Id?.Equals(view.RemapKey(viewField.Id)) != true) continue;
-                        var bind = BinderFactory.CreateFieldToField(vmValue, viewField.Field.GetValue(view));
+                        var bind = BinderFactory.CreateFieldToField(vmValue, viewField.Member.GetValue(view));
                         if (bind != null) binders.Add(bind);
                     }
                     foreach (var viewField in viewMeta.InputFieldBindings)
                     {
                         if (vmField.Id?.Equals(view.RemapKey(viewField.Id)) != true) continue;
-                        var bind = BinderFactory.CreateFieldToField(vmValue, viewField.Field.GetValue(view));
+                        var bind = BinderFactory.CreateFieldToField(vmValue, viewField.Member.GetValue(view));
                         if (bind != null) binders.Add(bind);
                     }
                     foreach (var viewMethod in viewMeta.OutputMethodBindings)
@@ -43,7 +43,7 @@ namespace SackranyUI.Core.Static
                     foreach (var colField in viewMeta.CollectionFieldBindings)
                     {
                         if (vmField.Id?.Equals(view.RemapKey(colField.Id)) != true) continue;
-                        var bind = BinderFactory.CreateCollectionBinder(viewModel, vmValue, colField.Field.GetValue(view));
+                        var bind = BinderFactory.CreateCollectionBinder(viewModel, vmValue, colField.Member.GetValue(view));
                         if (bind != null) binders.Add(bind);
                     }
                 }
@@ -53,7 +53,7 @@ namespace SackranyUI.Core.Static
                     foreach (var viewField in viewMeta.InputFieldBindings)
                     {
                         if (vmMethod.Id?.Equals(view.RemapKey(viewField.Id)) != true) continue;
-                        var bind = BinderFactory.CreateForInputMethod(viewModel, vmMethod.Method, vmMethod.Parameter, viewField.Field.GetValue(view));
+                        var bind = BinderFactory.CreateForInputMethod(viewModel, vmMethod.Method, vmMethod.Parameter, viewField.Member.GetValue(view));
                         if (bind != null) binders.Add(bind);
                     }
                 }
@@ -69,14 +69,15 @@ namespace SackranyUI.Core.Static
             var viewArray = views as View[] ?? views.ToArray();
             foreach (var initField in vmMeta.InitFieldBindings)
             {
-                var initValue = initField.Field.GetValue(viewModel);
+                var initValue = initField.Member.GetValue(viewModel);
+                if (initValue == null) continue;
                 foreach (var view in viewArray)
                 {
                     var viewMeta = ViewReflectionCache.GetViewMetadata(view.GetType());
                     foreach (var viewField in viewMeta.InputFieldBindings)
                     {
                         if (initField.Id?.Equals(view.RemapKey(viewField.Id)) != true) continue;
-                        BinderFactory.ApplyInitialValue(initValue, viewField.Field.GetValue(view));
+                        BinderFactory.ApplyInitialValue(initValue, viewField.Member.GetValue(view));
                     }
                 }
             }

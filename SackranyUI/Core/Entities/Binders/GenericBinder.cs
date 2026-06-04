@@ -1,6 +1,8 @@
-﻿using System;
+using System;
 
 using R3;
+
+using UnityEngine;
 
 namespace SackranyUI.Core.Entities.Binders
 {
@@ -28,8 +30,22 @@ namespace SackranyUI.Core.Entities.Binders
             _handle = null;
         }
 
-        protected override void OnNextCore(T value) => _setter(value);
-        protected override void OnErrorResumeCore(Exception error) { }
-        protected override void OnCompletedCore(Result result) { }
+        protected override void OnNextCore(T value)
+        {
+            try
+            {
+                _setter(value);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
+        protected override void OnErrorResumeCore(Exception error) => Debug.LogException(error);
+        protected override void OnCompletedCore(Result result)
+        {
+            if (result.IsFailure)
+                Debug.LogException(result.Exception);
+        }
     }
 }

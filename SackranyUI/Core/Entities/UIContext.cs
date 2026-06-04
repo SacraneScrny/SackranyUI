@@ -76,9 +76,9 @@ namespace SackranyUI.Core.Entities
         public T[] GetAll<T>(Func<T, bool> cond = null) where T : ViewModel
         {
             if (!_typesToViewModels.TryGetValue(typeof(T), out var list))
-                return null;
-            return cond == null 
-                ? list.OfType<T>().ToArray() 
+                return Array.Empty<T>();
+            return cond == null
+                ? list.OfType<T>().ToArray()
                 : list.OfType<T>().Where(cond).ToArray();
         }
         public bool TryGet<T>(out T result, Func<T, bool> cond = null) where T : ViewModel
