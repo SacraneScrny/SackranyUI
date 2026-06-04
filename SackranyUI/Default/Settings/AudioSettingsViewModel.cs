@@ -3,8 +3,10 @@
 using R3;
 
 using Sackrany.ConfigSystem;
+using Sackrany.ConfigSystem.SackranyConfig;
 using Sackrany.GameAudio;
-using Sackrany.GameAudio.Configurations;
+using Sackrany.GameAudio.SackranyAudio;
+using Sackrany.GameAudio.SackranyAudio.Configurations;
 
 using SackranyUI.Core.Base;
 using SackranyUI.Core.Entities;

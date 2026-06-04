@@ -1,8 +1,7 @@
 ﻿using System;
 
 using R3;
-
-using Sackrany.SerializableData.Storage;
+using SackranySerializable.Storage;
 
 using SackranyUI.Core.Base;
 using SackranyUI.Core.Entities;

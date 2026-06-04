@@ -10,6 +10,8 @@ using SackranyUI.Core.Static;
 
 using UnityEngine;
 
+using Object = UnityEngine.Object;
+
 namespace SackranyUI.Core.Entities.Binders
 {
     internal sealed class CollectionBinder<TItemVM> : IBinder

@@ -3,7 +3,9 @@
 using R3;
 
 using Sackrany.Scenes;
-using Sackrany.SerializableData;
+using Sackrany.Scenes.SackranyScenes;
+
+using SackranySerializable;
 
 using SackranyUI.Core.Base;
 using SackranyUI.Core.Entities;
