@@ -2,8 +2,7 @@
 
 using R3;
 
-using Sackrany.Scenes;
-using Sackrany.Scenes.SackranyScenes;
+using SackranyScenes;
 
 using SackranySerializable;
 
