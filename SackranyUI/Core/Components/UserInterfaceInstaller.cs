@@ -21,11 +21,16 @@ namespace SackranyUI.Core.Components
         {
             if (Content == null)
             {
-                Content = new GameObject("Content").transform;
-                Content.SetParent(transform);
-                Content.localScale = Vector3.one;
-                Content.localRotation = Quaternion.identity;
-                Content.localPosition = Vector3.zero;
+                var rect = new GameObject("Content", typeof(RectTransform)).GetComponent<RectTransform>();
+                rect.SetParent(transform, false);
+                rect.localScale = Vector3.one;
+                rect.localRotation = Quaternion.identity;
+                rect.localPosition = Vector3.zero;
+                rect.anchorMin = Vector2.zero;
+                rect.anchorMax = Vector2.one;
+                rect.offsetMin = Vector2.zero;
+                rect.offsetMax = Vector2.zero;
+                Content = rect;
             }
             transform.position = Vector3.zero;
             transform.rotation = Quaternion.identity;

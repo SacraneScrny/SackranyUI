@@ -216,6 +216,7 @@ you rename any key per instance in the inspector):
 | `InputFieldView` | `label`, `input` |
 | `DropdownView` | `label`, `dropdown` |
 | `CanvasGroupView` | `alpha`, `canvas_interactable`, `canvas_blocks`, `canvas_active` |
+| `CanvasView` | `sort_order`, `override_sorting`, `alpha` |
 
 Renaming a key per instance just works — the binder and the validator both
 resolve the remapped key:
@@ -224,6 +225,26 @@ resolve the remapped key:
 // On the prefab: TextView.TextKey = "player_name"
 [Bind("player_name")] readonly ReactiveProperty<string> _name = new("Hero");
 ```
+
+`CanvasView` lets a window control its own stacking and fade from the view model.
+Add it to a prefab root that has a `Canvas` (a `CanvasGroup` is added
+automatically), then drive the channels reactively:
+
+```csharp
+public class PopupViewModel : ViewModel<Popup>
+{
+    [Bind("sort_order")]       readonly ReactiveProperty<int>   _order = new(100);
+    [Bind("override_sorting")] readonly ReactiveProperty<bool>  _override = new(true);
+    [Bind("alpha")]            readonly ReactiveProperty<float> _alpha = new(1f);
+
+    public void BringToFront() => _order.Value = 1000;
+    public void Fade(float a)  => _alpha.Value = a;
+}
+```
+
+`sort_order` always takes effect on a root canvas; on a nested canvas set
+`override_sorting` to `true` first. Each key is renamable per instance via the
+`SortOrderKey` / `OverrideSortingKey` / `AlphaKey` fields.
 
 ## Initial values
 
