@@ -10,6 +10,10 @@ using UnityEngine.UI;
 
 namespace SackranyUI.Core.Entities.Binders
 {
+    /// <summary>
+    /// Central registry of binders, text formatters and initializers. Register custom rules at
+    /// startup to extend how values map onto components without touching the core.
+    /// </summary>
     public static class BinderRegistry
     {
         internal static readonly Dictionary<(Type value, Type component), Action<object, object>> Output = new();
@@ -34,15 +38,19 @@ namespace SackranyUI.Core.Entities.Binders
             RegisterDefaults();
         }
 
+        /// <summary>Registers how a <typeparamref name="TValue"/> is written onto a <typeparamref name="TComponent"/> (view model → view).</summary>
         public static void RegisterOutput<TValue, TComponent>(Action<TComponent, TValue> setter)
             => Output[(typeof(TValue), typeof(TComponent))] = (c, v) => setter((TComponent)c, (TValue)v);
 
+        /// <summary>Registers how a <typeparamref name="TValue"/> is formatted to a string for <c>TMP_Text</c> bindings.</summary>
         public static void RegisterTextFormatter<TValue>(Func<TValue, string> formatter)
             => TextFormatters[typeof(TValue)] = v => formatter((TValue)v);
 
+        /// <summary>Registers how a one-shot <c>[InitBind]</c> <typeparamref name="TValue"/> seeds a <typeparamref name="TComponent"/>.</summary>
         public static void RegisterInit<TValue, TComponent>(Action<TComponent, TValue> setter)
             => Init[(typeof(TValue), typeof(TComponent))] = (c, v) => setter((TComponent)c, (TValue)v);
 
+        /// <summary>Registers how a <typeparamref name="TComponent"/> reports <typeparamref name="TValue"/> changes back to the view model (view → view model).</summary>
         public static void RegisterInput<TValue, TComponent>(
             Action<TComponent, UnityAction<TValue>> addListener,
             Action<TComponent, UnityAction<TValue>> removeListener)

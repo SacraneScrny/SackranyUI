@@ -14,6 +14,10 @@ using UnityEngine;
 
 namespace SackranyUI.Core.Base
 {
+    /// <summary>
+    /// Base class for all view models: holds reactive state, reacts to the event bus and
+    /// owns the lifecycle (initialize, open/close, dispose) of a single bound prefab.
+    /// </summary>
     public abstract class ViewModel
         : IDisposable, IEquatable<ViewModel>,
             IUIBusListener, IUIBusPublisher, IContextUser
@@ -39,6 +43,7 @@ namespace SackranyUI.Core.Base
         public bool HasEventPublisher => EventPublisher != null;
         public bool IsOpened { get; private set; }
 
+        /// <summary>Wires the view model to its context, event bus, prefab transform and transitions. Called once by the framework.</summary>
         public void Initialize(
             IContextUser context = null,
             IUIBusListener eventListener = null,
@@ -50,7 +55,7 @@ namespace SackranyUI.Core.Base
         {
             if (IsInitialized)
             {
-                Debug.LogWarning($"[SackranyUI] {GetType().Name} (Id={Id}) уже инициализирован — повторный Initialize проигнорирован.");
+                Debug.LogWarning($"[SackranyUI] {GetType().Name} (Id={Id}) is already initialized — repeated Initialize ignored.");
                 return;
             }
 
@@ -65,9 +70,11 @@ namespace SackranyUI.Core.Base
             IsInitialized = true;
             OnInitialized();
         }
+        /// <summary>Called once after initialization. Subscribe to reactive members and set initial state here.</summary>
         protected abstract void OnInitialized();
 
         #region OPEN / CLOSE
+        /// <summary>Shows the prefab immediately and raises <see cref="Opened"/>.</summary>
         public void Open()
         {
             if (IsOpened) return;
@@ -76,6 +83,7 @@ namespace SackranyUI.Core.Base
             OnOpened();
         }
         protected virtual void OnOpened() { }
+        /// <summary>Hides the prefab immediately and raises <see cref="Closed"/>.</summary>
         public void Close()
         {
             if (!IsOpened) return;
@@ -85,6 +93,7 @@ namespace SackranyUI.Core.Base
         }
         protected virtual void OnClosed() { }
 
+        /// <summary>Opens the prefab, plays show transitions and awaits <see cref="OnOpenedAsync"/>.</summary>
         public async UniTask OpenAsync()
         {
             if (IsOpened) return;
@@ -94,6 +103,7 @@ namespace SackranyUI.Core.Base
             await PlayTransitions(show: true, token);
             await SafeAsync(OnOpenedAsync(token));
         }
+        /// <summary>Awaits <see cref="OnClosingAsync"/>, plays hide transitions, then closes the prefab.</summary>
         public async UniTask CloseAsync()
         {
             if (!IsOpened) return;
@@ -103,7 +113,9 @@ namespace SackranyUI.Core.Base
             await PlayTransitions(show: false, token);
             Close();
         }
+        /// <summary>Override to run async work (e.g. loading) after the view has opened.</summary>
         protected virtual UniTask OnOpenedAsync(CancellationToken ct) => UniTask.CompletedTask;
+        /// <summary>Override to run async work before the view starts closing.</summary>
         protected virtual UniTask OnClosingAsync(CancellationToken ct) => UniTask.CompletedTask;
 
         async UniTask PlayTransitions(bool show, CancellationToken token)
@@ -128,6 +140,7 @@ namespace SackranyUI.Core.Base
         #region DISPOSE
         readonly CompositeDisposable _disposables = new();
         bool _disposed;
+        /// <summary>Cancels async work, disposes bound reactive members and tracked subscriptions, then destroys the prefab via the context.</summary>
         public void Dispose()
         {
             if (_disposed) return;
@@ -150,7 +163,9 @@ namespace SackranyUI.Core.Base
         }
         protected virtual void OnDispose() { }
 
+        /// <summary>Registers a subscription to be disposed automatically when this view model is disposed.</summary>
         protected void Track(IDisposable disposable) => _disposables.Add(disposable);
+        /// <summary>Registers several subscriptions to be disposed automatically with this view model.</summary>
         protected void Track(params IDisposable[] disposables)
         {
             foreach (var d in disposables)
@@ -163,9 +178,13 @@ namespace SackranyUI.Core.Base
         }
         #endregion
 
+        /// <summary>Raised after the view model has been disposed.</summary>
         public event Action<ViewModel> Disposed;
+        /// <summary>Raised when the view model opens.</summary>
         public event Action<ViewModel> Opened;
+        /// <summary>Raised when the view model closes.</summary>
         public event Action<ViewModel> Closed;
+        /// <summary>Raised when <see cref="Reinit"/> is requested; re-applies initial values to the view.</summary>
         public event Action<ViewModel> Reiniting;
 
         public override int GetHashCode() => Id;
@@ -184,10 +203,15 @@ namespace SackranyUI.Core.Base
             return Equals((ViewModel)obj);
         }
 
+        /// <summary>Creates sibling view models from templates in the same context.</summary>
         public ViewModel[] Add(IEnumerable<IViewModelTemplate> viewModels, Transform root = null) => Context?.Add(viewModels, root);
+        /// <summary>Creates a sibling view model from a template in the same context.</summary>
         public ViewModel Add(IViewModelTemplate viewModelTemplate, Transform root = null) => Context?.Add(viewModelTemplate, root);
+        /// <summary>Returns true if the context holds at least one view model of type <typeparamref name="T"/> matching the predicate.</summary>
         public bool Has<T>(Func<T, bool> cond = null) where T : ViewModel => Context != null && Context.Has(cond);
+        /// <summary>Returns the first view model of type <typeparamref name="T"/> matching the predicate, or null.</summary>
         public T Get<T>(Func<T, bool> cond = null) where T : ViewModel => Context?.Get(cond);
+        /// <summary>Returns every view model of type <typeparamref name="T"/> matching the predicate.</summary>
         public T[] GetAll<T>(Func<T, bool> cond = null) where T : ViewModel => Context?.GetAll(cond);
         public bool TryGet<T>(out T result, Func<T, bool> cond = null) where T : ViewModel
         {
@@ -200,22 +224,32 @@ namespace SackranyUI.Core.Base
             return HasContext && Context.TryGetAll(out result, cond);
         }
 
+        /// <summary>Subscribes to a parameterless event on the shared bus. Track the result to auto-dispose.</summary>
         public IDisposable Subscribe<E>(Action callback) where E : IUIEvent => EventListener.Subscribe<E>(callback);
+        /// <summary>Subscribes to an event carrying a <typeparamref name="T"/> payload. Track the result to auto-dispose.</summary>
         public IDisposable Subscribe<E, T>(Action<T> callback) where E : IUIEvent => EventListener.Subscribe<E, T>(callback);
+        /// <summary>Removes a parameterless event subscription.</summary>
         public void Unsubscribe<E>(Action callback) where E : IUIEvent => EventListener.Unsubscribe<E>(callback);
+        /// <summary>Removes a payload event subscription.</summary>
         public void Unsubscribe<E, T>(Action<T> callback) where E : IUIEvent => EventListener.Unsubscribe<E, T>(callback);
+        /// <summary>Publishes a parameterless event to the shared bus. Returns true if anyone handled it.</summary>
         public bool Publish<E>() where E : IUIEvent
             => EventPublisher.Publish<E>();
+        /// <summary>Publishes an event with a <typeparamref name="T"/> payload. Set <paramref name="includeNoDataChannel"/> to also notify parameterless listeners.</summary>
         public bool Publish<E, T>(T data, bool includeNoDataChannel = false) where E : IUIEvent
             => EventPublisher.Publish<E, T>(data, includeNoDataChannel);
 
+        /// <summary>Returns the child anchor transform registered under <paramref name="key"/>, or the prefab root if none.</summary>
         public Transform GetAnchorOrDefault(string key) => Anchors.GetValueOrDefault(key) ?? Root;
+        /// <summary>Requests the context to re-apply <c>[InitBind]</c> values to the view.</summary>
         protected void Reinit() => Reiniting?.Invoke(this);
     }
 
+    /// <summary>A view model with a strongly typed, injected <see cref="Template"/> data object.</summary>
     public abstract class ViewModel<TTemplate> : ViewModel
         where TTemplate : IViewModelTemplate
     {
+        /// <summary>Serialized template data and prefab reference this view model was created from.</summary>
         [UITemplate] protected TTemplate Template;
     }
 }

@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace SackranyUI.Core.Views
 {
+    /// <summary>Two-way binds a <c>Slider</c> (via the <c>slider</c> channel) with an optional <c>label</c>.</summary>
     [AddComponentMenu("Sackrany/UI/General/Slider")]
     public class SliderView : SelectableView
     {

@@ -82,8 +82,32 @@ namespace SackranyUI.Core.Entities
         public static void ApplyInitialValue(object vmValue, object viewField)
         {
             if (vmValue == null || viewField == null) return;
-            if (BinderRegistry.TryGetInit(vmValue.GetType(), viewField.GetType(), out var setter))
-                setter(viewField, vmValue);
+
+            var valueType = vmValue.GetType();
+            var componentType = viewField.GetType();
+
+            if (BinderRegistry.TryGetInit(valueType, componentType, out var initSetter))
+            {
+                initSetter(viewField, vmValue);
+                return;
+            }
+
+            if (BinderRegistry.TryGetOutput(valueType, componentType, out var outputSetter))
+            {
+                outputSetter(viewField, vmValue);
+                return;
+            }
+
+            if (viewField is TMP_Text text &&
+                BinderRegistry.TextFormatters.TryGetValue(valueType, out var formatter))
+                text.text = formatter(vmValue);
+        }
+
+        public static void ApplyInitialValueToMethod(object vmValue, object viewInstance, MethodInfo method, ParameterInfo parameter)
+        {
+            if (vmValue == null || parameter == null) return;
+            if (!parameter.ParameterType.IsInstanceOfType(vmValue)) return;
+            method.Invoke(viewInstance, new[] { vmValue });
         }
 
         public static IBinder CreateFieldToField(object vmField, object viewField)

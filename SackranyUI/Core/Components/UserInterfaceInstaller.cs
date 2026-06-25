@@ -8,6 +8,7 @@ using UnityEngine;
 
 namespace SackranyUI.Core.Components
 {
+    /// <summary>Scene entry point: on Start it initializes the context and instantiates the default view models.</summary>
     [AddComponentMenu("Sackrany/UI/UserInterfaceInstaller")]
     public class UserInterfaceInstaller : MonoBehaviour
     {

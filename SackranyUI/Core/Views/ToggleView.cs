@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace SackranyUI.Core.Views
 {
+    /// <summary>Two-way binds a <c>Toggle</c> (via the <c>toggle</c> channel) with an optional <c>label</c>.</summary>
     [AddComponentMenu("Sackrany/UI/General/Toggle")]
     public class ToggleView : SelectableView
     {

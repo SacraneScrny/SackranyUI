@@ -5,6 +5,7 @@ using R3;
 
 namespace SackranyUI.Core.Events
 {
+    /// <summary>Typed publish/subscribe bus shared by every view model in a context.</summary>
     public class UIEventBus : IUIBusListener, IUIBusPublisher
     {
         readonly Dictionary<(int id, Type type), Delegate> _events = new();
@@ -84,6 +85,7 @@ namespace SackranyUI.Core.Events
             return invoked;
         }
 
+        /// <summary>Removes every subscription from the bus.</summary>
         public void Reset()
         {
             _events.Clear();

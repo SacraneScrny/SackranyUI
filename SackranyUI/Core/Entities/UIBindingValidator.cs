@@ -35,7 +35,7 @@ namespace SackranyUI.Core.Entities
             }
 
             foreach (var id in vmIds.Where(id => !matchedVmIds.Contains(id)))
-                Debug.LogWarning($"[UIValidator] {vmType.Name} — [Bind(\"{id}\")] не имеет совпадения ни в одном View");
+                Debug.LogWarning($"[UIValidator] {vmType.Name} — [Bind(\"{id}\")] has no match in any View");
         }
 
         static void Check(
@@ -45,10 +45,11 @@ namespace SackranyUI.Core.Entities
         {
             foreach (var (id, name, kind) in entries)
             {
-                if (vmIds.Contains(id))
-                    matchedVmIds.Add(id);
+                var key = view.RemapKey(id);
+                if (vmIds.Contains(key))
+                    matchedVmIds.Add(key);
                 else
-                    Debug.LogWarning($"[UIValidator] {view.GetType().Name}.{name} [{kind}(\"{id}\")] — нет [Bind(\"{id}\")] в {vmType.Name}");
+                    Debug.LogWarning($"[UIValidator] {view.GetType().Name}.{name} [{kind}(\"{key}\")] has no matching [Bind(\"{key}\")] in {vmType.Name}");
             }
         }
     }

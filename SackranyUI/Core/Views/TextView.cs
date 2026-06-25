@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace SackranyUI.Core.Views
 {
+    /// <summary>Binds a <c>TMP_Text</c> via the <c>text</c> channel.</summary>
     [AddComponentMenu("Sackrany/UI/General/Text")]
     public class TextView : ElementView
     {

@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 namespace SackranyUI.Core.Views
 {
+    /// <summary>Binds an <c>Image</c> sprite and fill amount via the <c>sprite</c> and <c>fill</c> channels.</summary>
     [AddComponentMenu("Sackrany/UI/General/Image")]
     public class ImageView : ElementView
     {

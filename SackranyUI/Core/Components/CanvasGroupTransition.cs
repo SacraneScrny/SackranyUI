@@ -8,6 +8,7 @@ using UnityEngine;
 
 namespace SackranyUI.Core.Components
 {
+    /// <summary>Ready-made fade transition that animates a <see cref="CanvasGroup"/>'s alpha on show/hide.</summary>
     [AddComponentMenu("Sackrany/UI/CanvasGroupTransition")]
     [RequireComponent(typeof(CanvasGroup))]
     public class CanvasGroupTransition : MonoBehaviour, IUITransition

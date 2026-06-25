@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace SackranyUI.Core.Views
 {
+    /// <summary>Two-way binds a <c>TMP_InputField</c> (via the <c>input</c> channel) with an optional <c>label</c>.</summary>
     [AddComponentMenu("Sackrany/UI/General/InputField")]
     public class InputFieldView : SelectableView
     {

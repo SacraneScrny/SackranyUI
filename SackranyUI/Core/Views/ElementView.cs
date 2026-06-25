@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace SackranyUI.Core.Views
 {
+    /// <summary>Base view for visual elements, adding the shared <c>alpha</c>, <c>color</c> and <c>active</c> channels to every child graphic.</summary>
     public abstract class ElementView : View
     {
         const string AlphaId = "__element_alpha";

@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace SackranyUI.Core.Views
 {
+    /// <summary>Two-way binds a <c>TMP_Dropdown</c> (via the <c>dropdown</c> channel) with an optional <c>label</c>.</summary>
     [AddComponentMenu("Sackrany/UI/General/Dropdown")]
     public class DropdownView : SelectableView
     {

@@ -13,6 +13,7 @@ using Object = UnityEngine.Object;
 
 namespace SackranyUI.Core.Entities
 {
+    /// <summary>Default <see cref="IContext"/>: instantiates view models, tracks them by id and type, and owns the shared event bus.</summary>
     [Serializable]
     public class UIContext : IContext
     {

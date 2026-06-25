@@ -79,6 +79,16 @@ namespace SackranyUI.Core.Static
                         if (initField.Id?.Equals(view.RemapKey(viewField.Id)) != true) continue;
                         BinderFactory.ApplyInitialValue(initValue, viewField.Member.GetValue(view));
                     }
+                    foreach (var viewField in viewMeta.OutputFieldBindings)
+                    {
+                        if (initField.Id?.Equals(view.RemapKey(viewField.Id)) != true) continue;
+                        BinderFactory.ApplyInitialValue(initValue, viewField.Member.GetValue(view));
+                    }
+                    foreach (var viewMethod in viewMeta.OutputMethodBindings)
+                    {
+                        if (initField.Id?.Equals(view.RemapKey(viewMethod.Id)) != true) continue;
+                        BinderFactory.ApplyInitialValueToMethod(initValue, view, viewMethod.Method, viewMethod.Parameter);
+                    }
                 }
             }
         }

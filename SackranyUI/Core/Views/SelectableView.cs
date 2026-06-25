@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 namespace SackranyUI.Core.Views
 {
+    /// <summary>Base view for interactive elements, adding the <c>interactable</c> channel on top of <see cref="ElementView"/>.</summary>
     public abstract class SelectableView : ElementView
     {
         const string InteractableId = "__element_interactable";

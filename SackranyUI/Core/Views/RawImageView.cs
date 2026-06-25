@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 namespace SackranyUI.Core.Views
 {
+    /// <summary>Binds a <c>RawImage</c> texture via the <c>texture</c> channel.</summary>
     [AddComponentMenu("Sackrany/UI/General/RawImage")]
     public class RawImageView : ElementView
     {

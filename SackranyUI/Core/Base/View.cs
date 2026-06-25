@@ -8,17 +8,24 @@ using UnityEngine;
 
 namespace SackranyUI.Core.Base
 {
+    /// <summary>
+    /// Base class for views: a <see cref="MonoBehaviour"/> on a prefab that exposes Unity
+    /// components to a view model by string key, with its own initialization and task lifecycle.
+    /// </summary>
     public abstract class View : MonoBehaviour
     {
         bool _isDestroyed;
         bool _isInitialized;
         CancellationTokenSource _cancellationSource;
 
+        /// <summary>Called by the framework before bindings are built; set up key remaps here.</summary>
         public void PreInitialize()
         {
             OnBeforeBinding();
         }
+        /// <summary>Override to cache components and register key remaps before binding.</summary>
         protected virtual void OnBeforeBinding() { }
+        /// <summary>Called once after bindings are built, linking the view to the view model's cancellation token.</summary>
         public void Initialize(CancellationToken cancellationToken)
         {
             if (_isInitialized) return;
@@ -31,7 +38,9 @@ namespace SackranyUI.Core.Base
         #region REMAP
         readonly Dictionary<object, object> _keyRemap = new();
 
+        /// <summary>Maps a built-in binding key to a per-instance key configured in the inspector.</summary>
         protected void Remap(object from, object to) => _keyRemap[from] = to;
+        /// <summary>Resolves a declared binding key to its remapped value, or returns it unchanged.</summary>
         public object RemapKey(object key) => _keyRemap.GetValueOrDefault(key, key);
         #endregion
 
@@ -69,6 +78,7 @@ namespace SackranyUI.Core.Base
         }
         protected virtual void OnLateUpdate() { }
 
+        /// <summary>Destroys the view's GameObject once.</summary>
         public void DestroyView()
         {
             if (_isDestroyed || gameObject == null) { return; }
@@ -89,6 +99,7 @@ namespace SackranyUI.Core.Base
         #region TASKS
         readonly HashSet<CancellationTokenSource> _runningTasks = new();
 
+        /// <summary>Runs an async task tied to the view's lifetime; it is cancelled when the view is destroyed. Returns a source to cancel it early.</summary>
         public CancellationTokenSource StartTask(Func<CancellationToken, UniTask> taskFactory)
         {
             if (!_isInitialized) return null;

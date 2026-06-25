@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace SackranyUI.Core.Views
 {
+    /// <summary>Binds a <c>Button</c> with optional title text/color via the <c>button</c>, <c>title_text</c> and <c>title_color</c> channels.</summary>
     [AddComponentMenu("Sackrany/UI/General/Button")]
     public class ButtonView : SelectableView
     {

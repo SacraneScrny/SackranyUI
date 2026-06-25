@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace SackranyUI.Core.Events
 {
+    /// <summary>Assigns stable runtime ids and cached instances to event types.</summary>
     public static class UIEventRegistry
     {
         static readonly Dictionary<Type, int> _typeToId = new();

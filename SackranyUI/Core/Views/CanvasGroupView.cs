@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace SackranyUI.Core.Views
 {
+    /// <summary>Binds a <c>CanvasGroup</c>'s alpha, interactable, raycast-blocking and active state via the <c>canvas_*</c> channels.</summary>
     [AddComponentMenu("Sackrany/UI/General/CanvasGroup")]
     [RequireComponent(typeof(CanvasGroup))]
     public class CanvasGroupView : View

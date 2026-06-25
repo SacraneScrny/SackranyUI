@@ -6,6 +6,10 @@ using R3;
 
 namespace SackranyUI.Core.Entities
 {
+    /// <summary>
+    /// An observable list that drives collection bindings: mutations emit change streams so
+    /// the view's spawned child hierarchy stays in sync.
+    /// </summary>
     public sealed class ReactiveList<T> : IReadOnlyList<T>, IDisposable
     {
         readonly List<T> _items = new();
@@ -15,15 +19,23 @@ namespace SackranyUI.Core.Entities
         readonly Subject<(int from, int to)> _onMove = new();
         readonly Subject<Unit> _onReset = new();
 
+        /// <summary>The current items, read-only.</summary>
         public IReadOnlyList<T> Items => _items;
+        /// <summary>Emits the index and item whenever an element is added or inserted.</summary>
         public Observable<(int index, T item)> OnAdd => _onAdd;
+        /// <summary>Emits the index and item whenever an element is removed.</summary>
         public Observable<(int index, T item)> OnRemove => _onRemove;
+        /// <summary>Emits the index and new item whenever an element is replaced via the indexer.</summary>
         public Observable<(int index, T item)> OnReplace => _onReplace;
+        /// <summary>Emits the source and target indices whenever an element is moved.</summary>
         public Observable<(int from, int to)> OnMove => _onMove;
+        /// <summary>Emits whenever the list is cleared.</summary>
         public Observable<Unit> OnReset => _onReset;
 
+        /// <summary>Number of items in the list.</summary>
         public int Count => _items.Count;
 
+        /// <summary>Gets the item at <paramref name="index"/>, or replaces it (raising <see cref="OnReplace"/>).</summary>
         public T this[int index]
         {
             get => _items[index];
@@ -35,6 +47,7 @@ namespace SackranyUI.Core.Entities
             }
         }
 
+        /// <summary>Appends an item and raises <see cref="OnAdd"/>.</summary>
         public void Add(T item)
         {
             if (_disposed) return;
@@ -42,6 +55,7 @@ namespace SackranyUI.Core.Entities
             _onAdd.OnNext((_items.Count - 1, item));
         }
 
+        /// <summary>Appends several items, raising <see cref="OnAdd"/> for each.</summary>
         public void AddRange(IEnumerable<T> items)
         {
             if (_disposed || items == null) return;
@@ -49,6 +63,7 @@ namespace SackranyUI.Core.Entities
                 Add(item);
         }
 
+        /// <summary>Inserts an item at <paramref name="index"/> (clamped) and raises <see cref="OnAdd"/>.</summary>
         public void Insert(int index, T item)
         {
             if (_disposed) return;
@@ -57,6 +72,7 @@ namespace SackranyUI.Core.Entities
             _onAdd.OnNext((index, item));
         }
 
+        /// <summary>Removes the item at <paramref name="index"/> and raises <see cref="OnRemove"/>.</summary>
         public void RemoveAt(int index)
         {
             if (_disposed) return;
@@ -66,6 +82,7 @@ namespace SackranyUI.Core.Entities
             _onRemove.OnNext((index, item));
         }
 
+        /// <summary>Removes the first occurrence of <paramref name="item"/> and raises <see cref="OnRemove"/>.</summary>
         public void Remove(T item)
         {
             if (_disposed) return;
@@ -73,6 +90,7 @@ namespace SackranyUI.Core.Entities
             if (index >= 0) RemoveAt(index);
         }
 
+        /// <summary>Moves an item between indices and raises <see cref="OnMove"/>.</summary>
         public void Move(int from, int to)
         {
             if (_disposed) return;
@@ -85,9 +103,12 @@ namespace SackranyUI.Core.Entities
             _onMove.OnNext((from, to));
         }
 
+        /// <summary>Returns true if the list contains <paramref name="item"/>.</summary>
         public bool Contains(T item) => _items.Contains(item);
+        /// <summary>Returns the index of <paramref name="item"/>, or -1.</summary>
         public int IndexOf(T item) => _items.IndexOf(item);
 
+        /// <summary>Removes all items and raises <see cref="OnReset"/>.</summary>
         public void Clear()
         {
             if (_disposed) return;
